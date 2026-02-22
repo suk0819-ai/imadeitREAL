@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>패션 컬러 하모니 분석기</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: white;
+            --text-color: #212529;
+            --accent-color: #6c5ce7;
+            --border-color: #dee2e6;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1b;
+            --card-bg: #2d2d2e;
+            --text-color: #e9ecef;
+            --accent-color: #a29bfe;
+            --border-color: #444;
+            --shadow: rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        #theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-color);
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px var(--shadow);
+            text-align: center;
+        }
+
+        h1 { margin-top: 0; font-weight: 800; }
+        p { color: #888; margin-bottom: 2rem; }
+
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            padding: 3rem 1rem;
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent-color);
+            background: rgba(108, 92, 231, 0.05);
+        }
+
+        #preview-img {
+            max-width: 100%;
+            border-radius: 0.8rem;
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .palette {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .color-swatch {
+            width: 50px;
+            height: 50px;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .score-box {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 1rem 0;
+        }
+
+        .advice {
+            background: rgba(0,0,0,0.03);
+            padding: 1rem;
+            border-radius: 0.8rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        [data-theme="dark"] .advice { background: rgba(255,255,255,0.05); }
+
+        button#analyze-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.8rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        #file-input { display: none; }
+    </style>
+</head>
+<body data-theme="light">
+    <button id="theme-toggle">🌙 다크 모드</button>
+
+    <div class="container">
+        <h1>👗 패션 컬러 하모니</h1>
+        <p>오늘의 코디, 색상 조화 점수를 확인해보세요!</p>
+
+        <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+            <div id="upload-placeholder">
+                <span style="font-size: 3rem;">📸</span>
+                <br>클릭하여 코디 사진 업로드
+            </div>
+            <img id="preview-img" src="" alt="Preview">
+        </div>
+        <input type="file" id="file-input" accept="image/*">
+
+        <button id="analyze-btn" style="display: none;">분석 시작하기</button>
+
+        <div class="result-section" id="result">
+            <hr style="border: 0.5px solid var(--border-color); margin: 2rem 0;">
+            <h3>분석 결과</h3>
+            <div class="palette" id="palette"></div>
+            <div class="score-box" id="score">85점</div>
+            <p id="harmony-type" style="font-weight: bold; color: var(--text-color);"></p>
+            <div class="advice" id="advice">
+                이 코디는 보색 대비가 훌륭하여 세련된 느낌을 줍니다!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const previewImg = document.getElementById('preview-img');
+        const placeholder = document.getElementById('upload-placeholder');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const resultSection = document.getElementById('result');
+        const themeToggle = document.getElementById('theme-toggle');
+
+        // Theme Toggle
+        themeToggle.addEventListener('click', () => {
+            const current = document.body.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', next);
+            themeToggle.textContent = next === 'dark' ? '☀️ 화이트 모드' : '🌙 다크 모드';
+        });
+
+        // Image Preview
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    previewImg.src = event.target.result;
+                    previewImg.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    analyzeBtn.style.display = 'block';
+                    resultSection.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Analysis Simulation (Real model can be integrated here)
+        analyzeBtn.addEventListener('click', () => {
+            analyzeBtn.innerText = '분석 중...';
+            analyzeBtn.disabled = true;
+
+            setTimeout(() => {
+                const score = Math.floor(Math.random() * 30) + 70; // 70-100 random for simulation
+                document.getElementById('score').innerText = `${score}점`;
+                
+                // Mock palette
+                const palette = document.getElementById('palette');
+                palette.innerHTML = '';
+                ['#34495e', '#e67e22', '#ecf0f1', '#27ae60'].forEach(color => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'color-swatch';
+                    swatch.style.backgroundColor = color;
+                    palette.appendChild(swatch);
+                });
+
+                document.getElementById('harmony-type').innerText = "보색 및 유사색 조화";
+                document.getElementById('advice').innerText = "전체적으로 차분한 톤에 오렌지색 포인트가 들어가 있어 에너지가 느껴지는 세련된 코디입니다. 신발을 화이트 톤으로 맞추면 더 깔끔해 보일 것 같아요!";
+
+                resultSection.style.display = 'block';
+                analyzeBtn.innerText = '분석 시작하기';
+                analyzeBtn.disabled = false;
+                
+                // Scroll to result
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
