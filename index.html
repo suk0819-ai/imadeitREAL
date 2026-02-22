@@ -4,18 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-adsense-account" content="ca-pub-3208063362565277">
-    <title>로또 번호 추첨기</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3208063362565277"
-     crossorigin="anonymous"></script>
+    <meta name="description" content="AI 기반 로또 번호 추첨 및 패션 컬러 조화 분석 서비스를 제공합니다. 과학적이고 재미있는 분석을 경험해보세요.">
+    <title>ImadeIt - AI 로또 추첨 및 패션 분석 서비스</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3208063362565277" crossorigin="anonymous"></script>
     <style>
         :root {
             --bg-color: #f0f2f5;
             --card-bg: white;
             --text-color: #333;
+            --secondary-text: #666;
             --input-bg: white;
             --input-border: #ddd;
             --btn-bg: #4CAF50;
             --btn-hover: #45a049;
+            --accent-color: #6c5ce7;
             --shadow: rgba(0, 0, 0, 0.1);
         }
 
@@ -23,6 +25,7 @@
             --bg-color: #121212;
             --card-bg: #2d2d2d;
             --text-color: #f0f2f5;
+            --secondary-text: #aaa;
             --input-bg: #3d3d3d;
             --input-border: #444;
             --btn-bg: #388E3C;
@@ -31,283 +34,218 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
-            padding: 4rem 1rem 2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--accent-color); text-decoration: none; }
+
+        nav a {
+            margin-left: 1.5rem;
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .main-content {
+            flex: 1;
+            width: 100%;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
             box-sizing: border-box;
         }
 
-        #theme-toggle {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
+        .tool-card {
             background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .info-section {
+            line-height: 1.8;
+            margin-top: 3rem;
+        }
+
+        .info-section h2 { border-left: 5px solid var(--accent-color); padding-left: 1rem; margin-top: 2rem; }
+
+        footer {
+            background-color: var(--card-bg);
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-top: 4rem;
+            border-top: 1px solid var(--input-border);
+        }
+
+        .footer-links { margin-bottom: 1.5rem; }
+        .footer-links a { margin: 0 1rem; color: var(--secondary-text); text-decoration: none; font-size: 0.85rem; }
+
+        #theme-toggle {
+            background-color: var(--bg-color);
             color: var(--text-color);
             border: 1px solid var(--input-border);
-            padding: 0.6rem 1.2rem;
+            padding: 0.5rem 1rem;
             border-radius: 2rem;
             cursor: pointer;
-            box-shadow: 0 2px 10px var(--shadow);
-            z-index: 1000;
-            transition: all 0.3s;
+            font-size: 0.8rem;
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .partnership-section {
-            background-color: var(--card-bg);
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px var(--shadow);
-            text-align: center;
-        }
-
-        .partnership-section h2 {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-        }
-
-        .partnership-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .partnership-form input, 
-        .partnership-form textarea {
-            padding: 0.8rem;
-            border: 1px solid var(--input-border);
-            border-radius: 0.5rem;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            font-size: 1rem;
-        }
-
-        .partnership-form textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .partnership-form button {
-            background-color: var(--btn-bg);
-            color: white;
-            padding: 0.8rem;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .partnership-form button:hover {
-            background-color: var(--btn-hover);
-        }
-
-        lotto-generator {
-            display: block;
-            width: 100%;
-        }
+        lotto-generator { display: block; width: 100%; }
     </style>
 </head>
 <body>
-    <button id="theme-toggle">🌙 다크 모드</button>
+    <header>
+        <a href="index.html" class="logo">ImadeIt</a>
+        <nav>
+            <a href="index.html">로또추첨</a>
+            <a href="fashion.html">패션분석</a>
+            <button id="theme-toggle">🌙 다크 모드</button>
+        </nav>
+    </header>
 
-    <div class="container">
-        <lotto-generator id="lotto"></lotto-generator>
+    <main class="main-content">
+        <section class="tool-card">
+            <lotto-generator id="lotto"></lotto-generator>
+        </section>
 
-        <div style="text-align: center; margin-top: 1rem;">
-            <a href="fashion.html" style="color: var(--text-color); text-decoration: none; font-weight: bold; font-size: 0.9rem; background: var(--card-bg); padding: 0.5rem 1rem; border-radius: 2rem; box-shadow: 0 4px 10px var(--shadow);">👗 패션 컬러 분석기 바로가기 →</a>
-        </div>
+        <!-- SEO 및 콘텐츠 보강을 위한 텍스트 섹션 -->
+        <section class="info-section">
+            <h2>로또 번호 추첨 서비스 소개</h2>
+            <p>ImadeIt의 로또 번호 추첨기는 단순한 무작위 생성을 넘어, 사용자에게 즐거운 경험을 선사하기 위해 설계되었습니다. 매주 새로운 희망을 품는 많은 분들에게 저희 서비스가 작은 행운의 시작점이 되길 바랍니다.</p>
+            
+            <h3>번호 생성 알고리즘 안내</h3>
+            <p>저희 시스템은 암호학적으로 안전한 난수 생성기(Pseudo-Random Number Generator)를 사용하여 1부터 45까지의 숫자 중 중복되지 않는 6개의 숫자를 추출합니다. 각 숫자는 독립적인 확률을 가지며, 생성된 번호는 시각적으로 보기 편하게 정렬되어 제공됩니다.</p>
 
-        <section class="partnership-section">
-            <h2>🤝 제휴 문의</h2>
-            <form class="partnership-form" action="https://formspree.io/f/mkovqpew" method="POST">
-                <input type="email" name="email" placeholder="이메일 주소" required title="이메일을 입력해주세요">
-                <textarea name="message" placeholder="제휴 제안 내용을 입력해주세요" required title="내용을 입력해주세요"></textarea>
-                <button type="submit">제휴 신청하기</button>
+            <h3>로또를 즐기는 현명한 방법</h3>
+            <p>복권은 일상의 작은 재미로 즐기는 것이 가장 좋습니다. 과도한 몰입보다는 소액으로 건전하게 참여하는 문화를 권장합니다. ImadeIt은 건전한 복권 구매 문화를 응원하며, 본 서비스에서 생성된 번호는 당첨을 보장하지 않음을 알려드립니다.</p>
+        </section>
+
+        <section class="partnership-section tool-card" style="margin-top: 4rem;">
+            <h2>🤝 제휴 및 문의</h2>
+            <p style="color: var(--secondary-text); margin-bottom: 1.5rem;">협업 제안이나 서비스 개선 의견이 있으시면 언제든 연락주세요.</p>
+            <form class="partnership-form" action="https://formspree.io/f/mkovqpew" method="POST" style="display: flex; flex-direction: column; gap: 1rem;">
+                <input type="email" name="email" placeholder="이메일 주소" required style="padding: 0.8rem; border-radius: 0.5rem; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-color);">
+                <textarea name="message" placeholder="문의 내용" required style="padding: 0.8rem; border-radius: 0.5rem; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-color); min-height: 100px;"></textarea>
+                <button type="submit" style="background: var(--btn-bg); color: white; padding: 1rem; border: none; border-radius: 0.5rem; font-weight: bold; cursor: pointer;">문의 보내기</button>
             </form>
         </section>
 
-        <section class="comments-section" style="background-color: var(--card-bg); padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px var(--shadow);">
+        <section class="comments-section tool-card">
+            <h3>💬 사용자 커뮤니티</h3>
             <div id="disqus_thread"></div>
-            <script>
-                (function() { // DON'T EDIT BELOW THIS LINE
-                var d = document, s = d.createElement('script');
-                s.src = 'https://imadeit-1.disqus.com/embed.js';
-                s.setAttribute('data-timestamp', +new Date());
-                (d.head || d.body).appendChild(s);
-                })();
-            </script>
-            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
         </section>
-    </div>
+    </main>
+
+    <footer>
+        <div class="footer-links">
+            <a href="about.html">회사 소개</a>
+            <a href="privacy.html">개인정보처리방침</a>
+            <a href="terms.html">이용약관</a>
+            <a href="contact.html">고객센터</a>
+        </div>
+        <p style="color: var(--secondary-text); font-size: 0.8rem;">&copy; 2026 ImadeIt. All rights reserved.</p>
+    </footer>
 
     <script>
-        // Theme Toggle Logic
+        // Theme Toggle
         const themeToggle = document.getElementById('theme-toggle');
         const lottoEl = document.getElementById('lotto');
         
         themeToggle.addEventListener('click', () => {
             const isDark = document.body.getAttribute('data-theme') === 'dark';
             const newTheme = isDark ? 'light' : 'dark';
-            
             document.body.setAttribute('data-theme', newTheme);
             themeToggle.textContent = newTheme === 'dark' ? '☀️ 화이트 모드' : '🌙 다크 모드';
-            
-            // Sync custom element if needed
-            if (lottoEl) {
-                lottoEl.setAttribute('theme', newTheme);
-            }
+            if (lottoEl) lottoEl.setAttribute('theme', newTheme);
         });
 
+        // Disqus
+        (function() {
+            var d = document, s = d.createElement('script');
+            s.src = 'https://imadeit-1.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+
+        // Lotto Component
         class LottoGenerator extends HTMLElement {
             constructor() {
                 super();
                 const shadow = this.attachShadow({ mode: 'open' });
-
                 const wrapper = document.createElement('div');
                 wrapper.setAttribute('class', 'lotto-generator');
-
                 const title = document.createElement('h1');
-                title.textContent = '로또 번호 추첨기';
-
+                title.textContent = '오늘의 행운 번호';
                 const button = document.createElement('button');
                 button.setAttribute('class', 'generate-button');
-                button.textContent = '번호 생성';
+                button.textContent = '지금 번호 추출하기';
                 button.addEventListener('click', () => this.generateNumbers());
-
                 const numbersContainer = document.createElement('div');
                 numbersContainer.setAttribute('class', 'numbers-container');
-
                 const style = document.createElement('style');
                 style.textContent = `
-                    :host {
-                        --lotto-bg: white;
-                        --lotto-text: #333;
-                        --lotto-shadow: rgba(0, 0, 0, 0.1);
-                    }
-                    :host([theme="dark"]) {
-                        --lotto-bg: #2d2d2d;
-                        --lotto-text: #f0f2f5;
-                        --lotto-shadow: rgba(0, 0, 0, 0.5);
-                    }
-                    .lotto-generator {
-                        text-align: center;
-                        padding: 2rem;
-                        background-color: var(--lotto-bg);
-                        border-radius: 1rem;
-                        box-shadow: 0 10px 25px var(--lotto-shadow);
-                        transition: all 0.3s ease;
-                    }
-                    h1 {
-                        color: var(--lotto-text);
-                        margin-bottom: 1.5rem;
-                        margin-top: 0;
-                    }
-                    .generate-button {
-                        background-color: #4CAF50;
-                        color: white;
-                        padding: 1rem 2rem;
-                        border: none;
-                        border-radius: 0.5rem;
-                        font-size: 1rem;
-                        font-weight: bold;
-                        cursor: pointer;
-                        transition: background-color 0.3s;
-                    }
-                    .generate-button:hover {
-                        background-color: #45a049;
-                    }
-                    .numbers-container {
-                        display: flex;
-                        justify-content: center;
-                        gap: 1rem;
-                        margin-top: 2rem;
-                        flex-wrap: wrap;
-                    }
-                    .lotto-ball {
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        width: 4rem;
-                        height: 4rem;
-                        border-radius: 50%;
-                        color: white;
-                        font-size: 1.5rem;
-                        font-weight: bold;
-                        animation: pop-in 0.5s ease-out;
-                        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-                    }
-                    @keyframes pop-in {
-                        0% { transform: scale(0); opacity: 0; }
-                        60% { transform: scale(1.1); opacity: 1; }
-                        100% { transform: scale(1); }
-                    }
+                    .lotto-generator { text-align: center; }
+                    h1 { color: var(--lotto-text, #333); margin-bottom: 2rem; font-size: 2rem; }
+                    .generate-button { background-color: #4CAF50; color: white; padding: 1.2rem 2.5rem; border: none; border-radius: 3rem; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.2s, background-color 0.3s; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3); }
+                    .generate-button:hover { background-color: #45a049; transform: translateY(-2px); }
+                    .generate-button:active { transform: translateY(0); }
+                    .numbers-container { display: flex; justify-content: center; gap: 0.8rem; margin-top: 3rem; flex-wrap: wrap; min-height: 4rem; }
+                    .lotto-ball { display: flex; justify-content: center; align-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; color: white; font-size: 1.3rem; font-weight: bold; animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+                    @keyframes pop-in { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
                 `;
-
                 shadow.appendChild(style);
                 shadow.appendChild(wrapper);
                 wrapper.appendChild(title);
                 wrapper.appendChild(button);
                 wrapper.appendChild(numbersContainer);
             }
-
-            static get observedAttributes() {
-                return ['theme'];
-            }
-
+            static get observedAttributes() { return ['theme']; }
             attributeChangedCallback(name, oldValue, newValue) {
-                if (name === 'theme') {
-                    // Styles update automatically via CSS variables in shadow root
-                }
+                this.style.setProperty('--lotto-text', newValue === 'dark' ? '#f0f2f5' : '#333');
             }
-
             generateNumbers() {
-                const numbersContainer = this.shadowRoot.querySelector('.numbers-container');
-                numbersContainer.innerHTML = '';
-
-                const numbers = new Set();
-                while (numbers.size < 6) {
-                    numbers.add(Math.floor(Math.random() * 45) + 1);
-                }
-
-                const sortedNumbers = Array.from(numbers).sort((a, b) => a - b);
-
-                sortedNumbers.forEach(number => {
-                    const ball = document.createElement('div');
-                    ball.setAttribute('class', 'lotto-ball');
-                    ball.textContent = number;
-                    ball.style.backgroundColor = this.getColor(number);
-                    numbersContainer.appendChild(ball);
+                const container = this.shadowRoot.querySelector('.numbers-container');
+                container.innerHTML = '';
+                const nums = new Set();
+                while(nums.size < 6) nums.add(Math.floor(Math.random()*45)+1);
+                Array.from(nums).sort((a,b)=>a-b).forEach((n, i) => {
+                    setTimeout(() => {
+                        const ball = document.createElement('div');
+                        ball.className = 'lotto-ball';
+                        ball.textContent = n;
+                        ball.style.backgroundColor = this.getColor(n);
+                        container.appendChild(ball);
+                    }, i * 100);
                 });
             }
-
-            getColor(number) {
-                if (number <= 10) return '#fbc400'; // 노란색
-                if (number <= 20) return '#69c8f2'; // 파란색
-                if (number <= 30) return '#ff7272'; // 빨간색
-                if (number <= 40) return '#aaa'; // 회색
-                return '#b0d840'; // 녹색
+            getColor(n) {
+                if(n<=10) return '#fbc400'; if(n<=20) return '#69c8f2';
+                if(n<=30) return '#ff7272'; if(n<=40) return '#aaa';
+                return '#b0d840';
             }
         }
-
         customElements.define('lotto-generator', LottoGenerator);
     </script>
 </body>
-</html>22
+</html>

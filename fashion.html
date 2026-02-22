@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-adsense-account" content="ca-pub-3208063362565277">
-    <title>패션 컬러 하모니 분석기 (AI)</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3208063362565277"
-     crossorigin="anonymous"></script>
-    <!-- TensorFlow & Teachable Machine Libraries -->
+    <meta name="description" content="AI 기반 패션 컬러 하모니 분석 서비스. 오늘 당신의 코디가 조화로운지 확인해보세요.">
+    <title>패션 컬러 분석 - ImadeIt AI</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3208063362565277" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <style>
@@ -15,6 +14,7 @@
             --bg-color: #f8f9fa;
             --card-bg: white;
             --text-color: #212529;
+            --secondary-text: #6c757d;
             --accent-color: #6c5ce7;
             --border-color: #dee2e6;
             --shadow: rgba(0, 0, 0, 0.1);
@@ -24,41 +24,48 @@
             --bg-color: #1a1a1b;
             --card-bg: #2d2d2e;
             --text-color: #e9ecef;
+            --secondary-text: #adb5bd;
             --accent-color: #a29bfe;
             --border-color: #444;
             --shadow: rgba(0, 0, 0, 0.4);
         }
 
         body {
-            font-family: 'Pretendard', -apple-system, sans-serif;
+            font-family: 'Pretendard', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 2rem 1rem;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            min-height: 100vh;
             transition: all 0.3s ease;
         }
 
-        #theme-toggle {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            padding: 0.6rem 1.2rem;
-            border-radius: 2rem;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            color: var(--text-color);
-            cursor: pointer;
-            z-index: 100;
+        header {
+            background-color: var(--card-bg);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px var(--shadow);
+            position: sticky; top: 0; z-index: 1000;
         }
 
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--accent-color); text-decoration: none; }
+        nav a { margin-left: 1.5rem; text-decoration: none; color: var(--text-color); font-weight: 500; }
+
         .container {
+            flex: 1;
             width: 100%;
-            max-width: 600px;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            box-sizing: border-box;
+        }
+
+        .tool-card {
             background: var(--card-bg);
-            padding: 2rem;
+            padding: 2.5rem;
             border-radius: 1.5rem;
             box-shadow: 0 10px 30px var(--shadow);
             text-align: center;
@@ -69,156 +76,138 @@
             padding: 3rem 1rem;
             border-radius: 1rem;
             cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        #preview-img {
-            max-width: 100%;
-            border-radius: 0.8rem;
-            display: none;
-            margin-top: 1rem;
-        }
+        #preview-img { max-width: 100%; border-radius: 0.8rem; display: none; margin-top: 1rem; }
 
         #analyze-btn {
             background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 0.8rem;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            transition: opacity 0.3s;
+            color: white; border: none; padding: 1rem 2.5rem; border-radius: 3rem;
+            font-size: 1.1rem; font-weight: bold; cursor: pointer; width: 100%;
         }
 
-        #analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .info-section { line-height: 1.8; margin-top: 4rem; }
+        .info-section h2 { border-left: 5px solid var(--accent-color); padding-left: 1rem; margin-top: 2rem; }
 
-        .result-section {
-            display: none;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border-color);
-        }
+        footer { background-color: var(--card-bg); padding: 3rem 2rem; text-align: center; margin-top: 4rem; border-top: 1px solid var(--border-color); }
+        .footer-links a { margin: 0 1rem; color: var(--secondary-text); text-decoration: none; font-size: 0.85rem; }
 
-        .label-container div {
-            margin: 0.5rem 0;
-            padding: 0.5rem;
-            background: rgba(0,0,0,0.05);
-            border-radius: 0.5rem;
-            font-weight: bold;
-        }
-
-        #status-msg { margin-top: 1rem; font-size: 0.9rem; color: #888; }
+        #theme-toggle { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 0.5rem 1rem; border-radius: 2rem; cursor: pointer; font-size: 0.8rem; }
     </style>
 </head>
-<body data-theme="light">
-    <button id="theme-toggle">🌙 다크 모드</button>
+<body>
+    <header>
+        <a href="index.html" class="logo">ImadeIt</a>
+        <nav>
+            <a href="index.html">로또추첨</a>
+            <a href="fashion.html">패션분석</a>
+            <button id="theme-toggle">🌙 다크 모드</button>
+        </nav>
+    </header>
 
-    <div class="container">
-        <div style="text-align: left; margin-bottom: 1rem;">
-            <a href="index.html" style="color: var(--text-color); text-decoration: none; font-size: 0.9rem; opacity: 0.8;">← 메인으로 돌아가기</a>
-        </div>
-        <h1>👗 AI 패션 하모니 분석</h1>
-        <p>모델을 통해 사진 속 옷 색깔의 조화를 분석합니다.</p>
+    <main class="container">
+        <section class="tool-card">
+            <h1>👗 AI 패션 컬러 분석</h1>
+            <p style="color: var(--secondary-text); margin-bottom: 2rem;">당신의 코디가 얼마나 조화로운지 AI가 분석해드립니다.</p>
 
-        <div class="upload-zone" onclick="document.getElementById('file-input').click()">
-            <div id="upload-placeholder">
-                <span style="font-size: 3rem;">📸</span>
-                <br>클릭하여 분석할 사진 업로드
+            <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+                <div id="upload-placeholder">
+                    <span style="font-size: 3rem;">📸</span>
+                    <br>분석할 코디 사진을 업로드하세요
+                </div>
+                <img id="preview-img" src="" alt="Preview">
             </div>
-            <img id="preview-img" src="" alt="Preview">
-        </div>
-        <input type="file" id="file-input" accept="image/*" style="display: none;">
+            <input type="file" id="file-input" accept="image/*" style="display: none;">
 
-        <button id="analyze-btn">분석 시작하기</button>
-        <div id="status-msg">모델 로딩 중...</div>
+            <button id="analyze-btn">AI 분석 시작</button>
+            <p id="status-msg" style="font-size: 0.9rem; color: var(--secondary-text); margin-top: 1rem;">모델 로딩 대기 중...</p>
 
-        <div class="result-section" id="result">
-            <h3>분석 결과</h3>
-            <div id="label-container" class="label-container"></div>
-            <div id="harmony-summary" style="margin-top: 1.5rem; font-size: 1.2rem; font-weight: bold; color: var(--accent-color);"></div>
+            <div id="result" style="display: none; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                <h3>분석 결과 요약</h3>
+                <div id="label-container" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;"></div>
+                <div id="harmony-summary" style="font-size: 1.3rem; font-weight: bold; color: var(--accent-color);"></div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <h2>패션 컬러 하모니 분석이란?</h2>
+            <p>ImadeIt의 AI 패션 분석 서비스는 딥러닝 기술을 활용하여 의상의 색상 조합을 분석합니다. 수많은 패션 데이터를 학습한 모델이 사용자의 코디가 시각적으로 얼마나 조화로운지 판단하여 결과를 제공합니다.</p>
+
+            <h3>색상 조화의 중요성</h3>
+            <p>옷차림에서 색상은 첫인상의 80% 이상을 결정짓는 중요한 요소입니다. 적절한 색상 조합은 신뢰감을 주거나 활기찬 에너지를 전달할 수 있습니다. 저희 AI 분석을 통해 자신만의 베스트 컬러 조합을 찾아보세요.</p>
+
+            <h3>분석 정확도 향상 팁</h3>
+            <p>정확한 분석을 위해 밝은 조명 아래에서 정면으로 촬영한 사진을 사용하는 것을 권장합니다. 배경이 단순할수록 의상의 색상을 더 정확하게 추출하여 분석 품질이 높아집니다.</p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-links">
+            <a href="index.html">홈</a>
+            <a href="about.html">회사 소개</a>
+            <a href="privacy.html">개인정보처리방침</a>
+            <a href="contact.html">고객센터</a>
         </div>
-    </div>
+        <p style="color: var(--secondary-text); font-size: 0.8rem;">&copy; 2026 ImadeIt. All rights reserved.</p>
+    </footer>
 
     <script>
         const URL = "./my_model/";
-        let model, labelContainer, maxPredictions;
+        let model, maxPredictions;
 
-        // Load Model
-        async function loadModel() {
+        async function init() {
             try {
-                const modelURL = URL + "model.json";
-                const metadataURL = URL + "metadata.json";
-                model = await tmImage.load(modelURL, metadataURL);
+                model = await tmImage.load(URL + "model.json", URL + "metadata.json");
                 maxPredictions = model.getTotalClasses();
-                document.getElementById('status-msg').innerText = "모델 로드 완료! 사진을 업로드 해주세요.";
+                document.getElementById('status-msg').innerText = "모델 로드 완료! 분석이 가능합니다.";
             } catch (e) {
-                document.getElementById('status-msg').innerText = "모델 파일을 찾을 수 없습니다. (./my_model/ 확인 필요)";
-                console.error(e);
+                document.getElementById('status-msg').innerText = "모델 로드 오류 (학습 데이터 필요)";
             }
         }
-
-        loadModel();
+        init();
 
         const fileInput = document.getElementById('file-input');
         const previewImg = document.getElementById('preview-img');
-        const placeholder = document.getElementById('upload-placeholder');
         const analyzeBtn = document.getElementById('analyze-btn');
-        const resultSection = document.getElementById('result');
-        const labelContainerDiv = document.getElementById('label-container');
 
-        // Image Preview
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    previewImg.src = event.target.result;
+                const r = new FileReader();
+                r.onload = (ev) => {
+                    previewImg.src = ev.target.result;
                     previewImg.style.display = 'block';
-                    placeholder.style.display = 'none';
-                    resultSection.style.display = 'none';
+                    document.getElementById('upload-placeholder').style.display = 'none';
                 };
-                reader.readAsDataURL(file);
+                r.readAsDataURL(file);
             }
         });
 
-        // Predict from File
         analyzeBtn.addEventListener('click', async () => {
-            if (!model) {
-                alert("모델이 아직 로드되지 않았습니다.");
-                return;
-            }
-            if (!previewImg.src || previewImg.style.display === 'none') {
-                alert("사진을 먼저 업로드 해주세요.");
-                return;
-            }
-
-            analyzeBtn.innerText = 'AI 분석 중...';
-            analyzeBtn.disabled = true;
-
-            // Prediction
+            if (!model) return alert("모델 로딩 중입니다.");
+            if (!previewImg.src) return alert("사진을 업로드해주세요.");
+            
+            analyzeBtn.disabled = true; analyzeBtn.innerText = "분석 중...";
             const prediction = await model.predict(previewImg);
             
-            labelContainerDiv.innerHTML = '';
+            const labelContainer = document.getElementById('label-container');
+            labelContainer.innerHTML = '';
             let bestMatch = { className: '', probability: 0 };
 
-            for (let i = 0; i < maxPredictions; i++) {
-                const p = prediction[i];
-                const div = document.createElement('div');
-                div.innerHTML = `${p.className}: ${(p.probability * 100).toFixed(1)}%`;
-                labelContainerDiv.appendChild(div);
+            prediction.forEach(p => {
+                const d = document.createElement('div');
+                d.innerHTML = `<strong>${p.className}</strong>: ${(p.probability * 100).toFixed(1)}%`;
+                d.style.background = 'rgba(108, 92, 231, 0.1)';
+                d.style.padding = '0.5rem';
+                d.style.borderRadius = '0.5rem';
+                labelContainer.appendChild(d);
+                if (p.probability > bestMatch.probability) bestMatch = p;
+            });
 
-                if (p.probability > bestMatch.probability) {
-                    bestMatch = p;
-                }
-            }
-
-            document.getElementById('harmony-summary').innerText = `가장 유력한 결과: ${bestMatch.className}`;
-            resultSection.style.display = 'block';
-            analyzeBtn.innerText = '분석 시작하기';
-            analyzeBtn.disabled = false;
+            document.getElementById('harmony-summary').innerText = `최종 판단: ${bestMatch.className}`;
+            document.getElementById('result').style.display = 'block';
+            analyzeBtn.disabled = false; analyzeBtn.innerText = "AI 분석 시작";
         });
 
         // Theme Toggle
