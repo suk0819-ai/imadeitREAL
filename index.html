@@ -1,14 +1,131 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로또 번호 추첨기</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+    </style>
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+    <lotto-generator></lotto-generator>
+
+    <script>
+        class LottoGenerator extends HTMLElement {
+            constructor() {
+                super();
+                const shadow = this.attachShadow({ mode: 'open' });
+
+                const wrapper = document.createElement('div');
+                wrapper.setAttribute('class', 'lotto-generator');
+
+                const title = document.createElement('h1');
+                title.textContent = '로또 번호 추첨기';
+
+                const button = document.createElement('button');
+                button.textContent = '번호 생성';
+                button.addEventListener('click', () => this.generateNumbers());
+
+                const numbersContainer = document.createElement('div');
+                numbersContainer.setAttribute('class', 'numbers-container');
+
+                const style = document.createElement('style');
+                style.textContent = `
+                    .lotto-generator {
+                        text-align: center;
+                        padding: 2rem;
+                        background-color: white;
+                        border-radius: 1rem;
+                        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                    }
+                    h1 {
+                        color: #333;
+                        margin-bottom: 1.5rem;
+                    }
+                    button {
+                        background-color: #4CAF50;
+                        color: white;
+                        padding: 1rem 2rem;
+                        border: none;
+                        border-radius: 0.5rem;
+                        font-size: 1rem;
+                        cursor: pointer;
+                        transition: background-color 0.3s;
+                    }
+                    button:hover {
+                        background-color: #45a049;
+                    }
+                    .numbers-container {
+                        display: flex;
+                        justify-content: center;
+                        gap: 1rem;
+                        margin-top: 2rem;
+                    }
+                    .lotto-ball {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        width: 4rem;
+                        height: 4rem;
+                        border-radius: 50%;
+                        color: white;
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                        animation: pop-in 0.5s ease-out;
+                    }
+                    @keyframes pop-in {
+                        0% { transform: scale(0); opacity: 0; }
+                        60% { transform: scale(1.1); opacity: 1; }
+                        100% { transform: scale(1); }
+                    }
+                `;
+
+                shadow.appendChild(style);
+                shadow.appendChild(wrapper);
+                wrapper.appendChild(title);
+                wrapper.appendChild(button);
+                wrapper.appendChild(numbersContainer);
+            }
+
+            generateNumbers() {
+                const numbersContainer = this.shadowRoot.querySelector('.numbers-container');
+                numbersContainer.innerHTML = '';
+
+                const numbers = new Set();
+                while (numbers.size < 6) {
+                    numbers.add(Math.floor(Math.random() * 45) + 1);
+                }
+
+                const sortedNumbers = Array.from(numbers).sort((a, b) => a - b);
+
+                sortedNumbers.forEach(number => {
+                    const ball = document.createElement('div');
+                    ball.setAttribute('class', 'lotto-ball');
+                    ball.textContent = number;
+                    ball.style.backgroundColor = this.getColor(number);
+                    numbersContainer.appendChild(ball);
+                });
+            }
+
+            getColor(number) {
+                if (number <= 10) return '#fbc400'; // 노란색
+                if (number <= 20) return '#69c8f2'; // 파란색
+                if (number <= 30) return '#ff7272'; // 빨간색
+                if (number <= 40) return '#aaa'; // 회색
+                return '#b0d840'; // 녹색
+            }
+        }
+
+        customElements.define('lotto-generator', LottoGenerator);
+    </script>
 </body>
 </html>
