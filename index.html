@@ -28,10 +28,16 @@
                 const wrapper = document.createElement('div');
                 wrapper.setAttribute('class', 'lotto-generator');
 
+                const themeToggle = document.createElement('button');
+                themeToggle.setAttribute('class', 'theme-toggle');
+                themeToggle.textContent = '🌙 다크 모드';
+                themeToggle.addEventListener('click', () => this.toggleTheme());
+
                 const title = document.createElement('h1');
                 title.textContent = '로또 번호 추첨기';
 
                 const button = document.createElement('button');
+                button.setAttribute('class', 'generate-button');
                 button.textContent = '번호 생성';
                 button.addEventListener('click', () => this.generateNumbers());
 
@@ -40,19 +46,55 @@
 
                 const style = document.createElement('style');
                 style.textContent = `
+                    :host {
+                        --bg-color: white;
+                        --text-color: #333;
+                        --wrapper-bg: white;
+                        --shadow-color: rgba(0, 0, 0, 0.1);
+                        --btn-bg: #4CAF50;
+                        --btn-hover: #45a049;
+                        --toggle-bg: #f0f2f5;
+                        --toggle-text: #333;
+                    }
+                    :host([theme="dark"]) {
+                        --bg-color: #1a1a1a;
+                        --text-color: #f0f2f5;
+                        --wrapper-bg: #2d2d2d;
+                        --shadow-color: rgba(0, 0, 0, 0.5);
+                        --btn-bg: #388E3C;
+                        --btn-hover: #2E7D32;
+                        --toggle-bg: #444;
+                        --toggle-text: #fff;
+                    }
                     .lotto-generator {
+                        position: relative;
                         text-align: center;
-                        padding: 2rem;
-                        background-color: white;
+                        padding: 3rem 2rem 2rem;
+                        background-color: var(--wrapper-bg);
                         border-radius: 1rem;
-                        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                        box-shadow: 0 10px 25px var(--shadow-color);
+                        transition: all 0.3s ease;
+                        min-width: 320px;
+                    }
+                    .theme-toggle {
+                        position: absolute;
+                        top: 1rem;
+                        right: 1rem;
+                        background-color: var(--toggle-bg);
+                        color: var(--toggle-text);
+                        border: none;
+                        padding: 0.5rem 1rem;
+                        border-radius: 2rem;
+                        font-size: 0.8rem;
+                        cursor: pointer;
+                        transition: all 0.3s;
                     }
                     h1 {
-                        color: #333;
+                        color: var(--text-color);
                         margin-bottom: 1.5rem;
                     }
-                    button {
-                        background-color: #4CAF50;
+                    .generate-button {
+                        background-color: var(--btn-bg);
                         color: white;
                         padding: 1rem 2rem;
                         border: none;
@@ -61,14 +103,15 @@
                         cursor: pointer;
                         transition: background-color 0.3s;
                     }
-                    button:hover {
-                        background-color: #45a049;
+                    .generate-button:hover {
+                        background-color: var(--btn-hover);
                     }
                     .numbers-container {
                         display: flex;
                         justify-content: center;
                         gap: 1rem;
                         margin-top: 2rem;
+                        flex-wrap: wrap;
                     }
                     .lotto-ball {
                         display: flex;
@@ -81,6 +124,7 @@
                         font-size: 1.5rem;
                         font-weight: bold;
                         animation: pop-in 0.5s ease-out;
+                        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
                     }
                     @keyframes pop-in {
                         0% { transform: scale(0); opacity: 0; }
@@ -91,9 +135,22 @@
 
                 shadow.appendChild(style);
                 shadow.appendChild(wrapper);
+                wrapper.appendChild(themeToggle);
                 wrapper.appendChild(title);
                 wrapper.appendChild(button);
                 wrapper.appendChild(numbersContainer);
+            }
+
+            toggleTheme() {
+                const currentTheme = this.getAttribute('theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                this.setAttribute('theme', newTheme);
+                
+                const toggleBtn = this.shadowRoot.querySelector('.theme-toggle');
+                toggleBtn.textContent = newTheme === 'dark' ? '☀️ 화이트 모드' : '🌙 다크 모드';
+                
+                // Update body background as well
+                document.body.style.backgroundColor = newTheme === 'dark' ? '#121212' : '#f0f2f5';
             }
 
             generateNumbers() {
