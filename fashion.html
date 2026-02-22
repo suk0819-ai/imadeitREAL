@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>패션 컬러 하모니 분석기</title>
+    <title>패션 컬러 하모니 분석기 (AI)</title>
+    <!-- TensorFlow & Teachable Machine Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -58,22 +61,13 @@
             text-align: center;
         }
 
-        h1 { margin-top: 0; font-weight: 800; }
-        p { color: #888; margin-bottom: 2rem; }
-
         .upload-zone {
             border: 2px dashed var(--border-color);
             padding: 3rem 1rem;
             border-radius: 1rem;
             cursor: pointer;
             transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .upload-zone:hover {
-            border-color: var(--accent-color);
-            background: rgba(108, 92, 231, 0.05);
+            margin-bottom: 1.5rem;
         }
 
         #preview-img {
@@ -83,46 +77,7 @@
             margin-top: 1rem;
         }
 
-        .result-section {
-            display: none;
-            margin-top: 2rem;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .palette {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .color-swatch {
-            width: 50px;
-            height: 50px;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .score-box {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--accent-color);
-            margin: 1rem 0;
-        }
-
-        .advice {
-            background: rgba(0,0,0,0.03);
-            padding: 1rem;
-            border-radius: 0.8rem;
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        [data-theme="dark"] .advice { background: rgba(255,255,255,0.05); }
-
-        button#analyze-btn {
+        #analyze-btn {
             background: var(--accent-color);
             color: white;
             border: none;
@@ -132,57 +87,81 @@
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            margin-top: 1rem;
+            transition: opacity 0.3s;
         }
 
-        #file-input { display: none; }
+        #analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .result-section {
+            display: none;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .label-container div {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.05);
+            border-radius: 0.5rem;
+            font-weight: bold;
+        }
+
+        #status-msg { margin-top: 1rem; font-size: 0.9rem; color: #888; }
     </style>
 </head>
 <body data-theme="light">
     <button id="theme-toggle">🌙 다크 모드</button>
 
     <div class="container">
-        <h1>👗 패션 컬러 하모니</h1>
-        <p>오늘의 코디, 색상 조화 점수를 확인해보세요!</p>
+        <h1>👗 AI 패션 하모니 분석</h1>
+        <p>모델을 통해 사진 속 옷 색깔의 조화를 분석합니다.</p>
 
         <div class="upload-zone" onclick="document.getElementById('file-input').click()">
             <div id="upload-placeholder">
                 <span style="font-size: 3rem;">📸</span>
-                <br>클릭하여 코디 사진 업로드
+                <br>클릭하여 분석할 사진 업로드
             </div>
             <img id="preview-img" src="" alt="Preview">
         </div>
-        <input type="file" id="file-input" accept="image/*">
+        <input type="file" id="file-input" accept="image/*" style="display: none;">
 
-        <button id="analyze-btn" style="display: none;">분석 시작하기</button>
+        <button id="analyze-btn">분석 시작하기</button>
+        <div id="status-msg">모델 로딩 중...</div>
 
         <div class="result-section" id="result">
-            <hr style="border: 0.5px solid var(--border-color); margin: 2rem 0;">
             <h3>분석 결과</h3>
-            <div class="palette" id="palette"></div>
-            <div class="score-box" id="score">85점</div>
-            <p id="harmony-type" style="font-weight: bold; color: var(--text-color);"></p>
-            <div class="advice" id="advice">
-                이 코디는 보색 대비가 훌륭하여 세련된 느낌을 줍니다!
-            </div>
+            <div id="label-container" class="label-container"></div>
+            <div id="harmony-summary" style="margin-top: 1.5rem; font-size: 1.2rem; font-weight: bold; color: var(--accent-color);"></div>
         </div>
     </div>
 
     <script>
+        const URL = "./my_model/";
+        let model, labelContainer, maxPredictions;
+
+        // Load Model
+        async function loadModel() {
+            try {
+                const modelURL = URL + "model.json";
+                const metadataURL = URL + "metadata.json";
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+                document.getElementById('status-msg').innerText = "모델 로드 완료! 사진을 업로드 해주세요.";
+            } catch (e) {
+                document.getElementById('status-msg').innerText = "모델 파일을 찾을 수 없습니다. (./my_model/ 확인 필요)";
+                console.error(e);
+            }
+        }
+
+        loadModel();
+
         const fileInput = document.getElementById('file-input');
         const previewImg = document.getElementById('preview-img');
         const placeholder = document.getElementById('upload-placeholder');
         const analyzeBtn = document.getElementById('analyze-btn');
         const resultSection = document.getElementById('result');
-        const themeToggle = document.getElementById('theme-toggle');
-
-        // Theme Toggle
-        themeToggle.addEventListener('click', () => {
-            const current = document.body.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            document.body.setAttribute('data-theme', next);
-            themeToggle.textContent = next === 'dark' ? '☀️ 화이트 모드' : '🌙 다크 모드';
-        });
+        const labelContainerDiv = document.getElementById('label-container');
 
         // Image Preview
         fileInput.addEventListener('change', (e) => {
@@ -193,42 +172,55 @@
                     previewImg.src = event.target.result;
                     previewImg.style.display = 'block';
                     placeholder.style.display = 'none';
-                    analyzeBtn.style.display = 'block';
                     resultSection.style.display = 'none';
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        // Analysis Simulation (Real model can be integrated here)
-        analyzeBtn.addEventListener('click', () => {
-            analyzeBtn.innerText = '분석 중...';
+        // Predict from File
+        analyzeBtn.addEventListener('click', async () => {
+            if (!model) {
+                alert("모델이 아직 로드되지 않았습니다.");
+                return;
+            }
+            if (!previewImg.src || previewImg.style.display === 'none') {
+                alert("사진을 먼저 업로드 해주세요.");
+                return;
+            }
+
+            analyzeBtn.innerText = 'AI 분석 중...';
             analyzeBtn.disabled = true;
 
-            setTimeout(() => {
-                const score = Math.floor(Math.random() * 30) + 70; // 70-100 random for simulation
-                document.getElementById('score').innerText = `${score}점`;
-                
-                // Mock palette
-                const palette = document.getElementById('palette');
-                palette.innerHTML = '';
-                ['#34495e', '#e67e22', '#ecf0f1', '#27ae60'].forEach(color => {
-                    const swatch = document.createElement('div');
-                    swatch.className = 'color-swatch';
-                    swatch.style.backgroundColor = color;
-                    palette.appendChild(swatch);
-                });
+            // Prediction
+            const prediction = await model.predict(previewImg);
+            
+            labelContainerDiv.innerHTML = '';
+            let bestMatch = { className: '', probability: 0 };
 
-                document.getElementById('harmony-type').innerText = "보색 및 유사색 조화";
-                document.getElementById('advice').innerText = "전체적으로 차분한 톤에 오렌지색 포인트가 들어가 있어 에너지가 느껴지는 세련된 코디입니다. 신발을 화이트 톤으로 맞추면 더 깔끔해 보일 것 같아요!";
+            for (let i = 0; i < maxPredictions; i++) {
+                const p = prediction[i];
+                const div = document.createElement('div');
+                div.innerHTML = `${p.className}: ${(p.probability * 100).toFixed(1)}%`;
+                labelContainerDiv.appendChild(div);
 
-                resultSection.style.display = 'block';
-                analyzeBtn.innerText = '분석 시작하기';
-                analyzeBtn.disabled = false;
-                
-                // Scroll to result
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-            }, 1500);
+                if (p.probability > bestMatch.probability) {
+                    bestMatch = p;
+                }
+            }
+
+            document.getElementById('harmony-summary').innerText = `가장 유력한 결과: ${bestMatch.className}`;
+            resultSection.style.display = 'block';
+            analyzeBtn.innerText = '분석 시작하기';
+            analyzeBtn.disabled = false;
+        });
+
+        // Theme Toggle
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const current = document.body.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', next);
+            document.getElementById('theme-toggle').textContent = next === 'dark' ? '☀️ 화이트 모드' : '🌙 다크 모드';
         });
     </script>
 </body>
