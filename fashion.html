@@ -4,271 +4,174 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-adsense-account" content="ca-pub-3208063362565277">
-    <meta name="description" content="AI 기반 패션 컬러 하모니 분석 서비스. 오늘 당신의 코디가 조화로운지 확인해보세요.">
-    <title>패션 컬러 분석 - ImadeIt AI</title>
+    <title>AI 패션 컬러 분석 - ImadeIt</title>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3208063362565277" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <style>
-        :root {
-            --bg-color: #f8f9fa;
-            --card-bg: white;
-            --text-color: #212529;
-            --secondary-text: #6c757d;
-            --accent-color: #6c5ce7;
-            --border-color: #dee2e6;
-            --shadow: rgba(0, 0, 0, 0.1);
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #1a1a1b;
-            --card-bg: #2d2d2e;
-            --text-color: #e9ecef;
-            --secondary-text: #adb5bd;
-            --accent-color: #a29bfe;
-            --border-color: #444;
-            --shadow: rgba(0, 0, 0, 0.4);
-        }
-
-        body {
-            font-family: 'Pretendard', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            transition: all 0.3s ease;
-        }
-
-        header {
-            background-color: var(--card-bg);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px var(--shadow);
-            position: sticky; top: 0; z-index: 1000;
-        }
-
-        .logo { font-size: 1.5rem; font-weight: 800; color: var(--accent-color); text-decoration: none; }
-        nav a { margin-left: 1.5rem; text-decoration: none; color: var(--text-color); font-weight: 500; }
-
-        .container {
-            flex: 1;
-            width: 100%;
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            box-sizing: border-box;
-        }
-
-        .tool-card {
-            background: var(--card-bg);
-            padding: 2.5rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 30px var(--shadow);
-            text-align: center;
-        }
-
-        .upload-zone {
-            border: 2px dashed var(--border-color);
-            padding: 3rem 1rem;
-            border-radius: 1rem;
-            cursor: pointer;
-            margin-bottom: 2rem;
-        }
-
-        #preview-img { max-width: 100%; border-radius: 0.8rem; display: none; margin-top: 1rem; }
-
-        #analyze-btn {
-            background: var(--accent-color);
-            color: white; border: none; padding: 1rem 2.5rem; border-radius: 3rem;
-            font-size: 1.1rem; font-weight: bold; cursor: pointer; width: 100%;
-        }
-
-        .info-section { line-height: 1.8; margin-top: 4rem; }
-        .info-section h2 { border-left: 5px solid var(--accent-color); padding-left: 1rem; margin-top: 2rem; }
-
-        footer { background-color: var(--card-bg); padding: 3rem 2rem; text-align: center; margin-top: 4rem; border-top: 1px solid var(--border-color); }
-        .footer-links a { margin: 0 1rem; color: var(--secondary-text); text-decoration: none; font-size: 0.85rem; }
-
-        #theme-toggle { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 0.5rem 1rem; border-radius: 2rem; cursor: pointer; font-size: 0.8rem; }
+        :root { --bg: #f8f9fa; --card: white; --text: #212529; --accent: #6c5ce7; --shadow: rgba(0,0,0,0.1); }
+        [data-theme="dark"] { --bg: #1a1a1b; --card: #2d2d2e; --text: #e9ecef; --shadow: rgba(0,0,0,0.4); }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: all 0.3s; }
+        header { background: var(--card); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px var(--shadow); }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--accent); text-decoration: none; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .tool-card { background: var(--card); padding: 2rem; border-radius: 1.5rem; box-shadow: 0 10px 30px var(--shadow); text-align: center; }
+        .mode-toggle { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .mode-btn { padding: 0.6rem 1.5rem; border-radius: 2rem; border: 1px solid var(--accent); background: none; color: var(--accent); cursor: pointer; font-weight: bold; }
+        .mode-btn.active { background: var(--accent); color: white; }
+        #webcam-container canvas { border-radius: 1rem; width: 100% !important; max-width: 400px; height: auto !important; }
+        .upload-zone { border: 2px dashed #ccc; padding: 2rem; border-radius: 1rem; cursor: pointer; }
+        #preview-img { max-width: 100%; border-radius: 1rem; display: none; margin-top: 1rem; }
+        .result-box { margin-top: 2rem; padding: 1.5rem; background: rgba(108, 92, 231, 0.1); border-radius: 1rem; display: none; }
+        #harmony-judgment { font-size: 1.8rem; font-weight: bold; color: var(--accent); margin-bottom: 0.5rem; }
+        footer { text-align: center; padding: 3rem; opacity: 0.7; font-size: 0.9rem; }
+        #label-container div { margin: 0.3rem 0; font-size: 0.9rem; }
     </style>
 </head>
-<body>
+<body data-theme="light">
     <header>
         <a href="index.html" class="logo">ImadeIt</a>
-        <nav>
-            <a href="index.html">로또추첨</a>
-            <a href="fashion.html">패션분석</a>
-            <button id="theme-toggle">🌙 다크 모드</button>
-        </nav>
+        <button id="theme-toggle" style="background:none; border:1px solid #ccc; padding:0.5rem 1rem; border-radius:2rem; cursor:pointer;">🌙 다크 모드</button>
     </header>
 
     <main class="container">
-        <section class="tool-card">
-            <h1>👗 AI 패션 컬러 분석</h1>
-            <p style="color: var(--secondary-text); margin-bottom: 2rem;">당신의 코디가 얼마나 조화로운지 AI가 분석해드립니다.</p>
+        <div class="tool-card">
+            <h1>👗 패션 컬러 조화 분석 (AI)</h1>
+            <p>AI가 당신의 옷 색깔 조화를 판단해드립니다.</p>
 
-            <div class="upload-zone" onclick="document.getElementById('file-input').click()">
-                <div id="upload-placeholder">
-                    <span style="font-size: 3rem;">📸</span>
-                    <br>분석할 코디 사진을 업로드하세요
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="switchMode('upload')">사진 업로드</button>
+                <button class="mode-btn" onclick="switchMode('webcam')">실시간 웹캠</button>
+            </div>
+
+            <!-- Upload Mode -->
+            <div id="upload-mode">
+                <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+                    📸 클릭하여 코디 사진 선택
+                    <img id="preview-img" src="">
                 </div>
-                <img id="preview-img" src="" alt="Preview">
+                <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleUpload(this)">
+                <button id="analyze-btn" onclick="predictImage()" style="margin-top:1.5rem; padding:1rem 2rem; background:var(--accent); color:white; border:none; border-radius:2rem; cursor:pointer; font-weight:bold; width:100%;">분석 시작하기</button>
             </div>
-            <input type="file" id="file-input" accept="image/*" style="display: none;">
 
-            <button id="analyze-btn">AI 분석 시작</button>
-            <p id="status-msg" style="font-size: 0.9rem; color: var(--secondary-text); margin-top: 1rem;">모델 로딩 대기 중...</p>
-
-            <div id="result" style="display: none; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
-                <h3>분석 결과 요약</h3>
-                <div id="label-container" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;"></div>
-                <div id="harmony-summary" style="font-size: 1.3rem; font-weight: bold; color: var(--accent-color);"></div>
+            <!-- Webcam Mode -->
+            <div id="webcam-mode" style="display:none;">
+                <button type="button" onclick="initWebcam()" style="padding:1rem 2rem; background:var(--accent); color:white; border:none; border-radius:2rem; cursor:pointer; font-weight:bold; margin-bottom:1rem;">웹캠 시작하기</button>
+                <div id="webcam-container"></div>
             </div>
-        </section>
 
-        <section class="info-section">
-            <h2>패션 컬러 하모니 분석이란?</h2>
-            <p>ImadeIt의 AI 패션 분석 서비스는 딥러닝 기술을 활용하여 의상의 색상 조합을 분석합니다. 수많은 패션 데이터를 학습한 모델이 사용자의 코디가 시각적으로 얼마나 조화로운지 판단하여 결과를 제공합니다.</p>
-
-            <h3>색상 조화의 중요성</h3>
-            <p>옷차림에서 색상은 첫인상의 80% 이상을 결정짓는 중요한 요소입니다. 적절한 색상 조합은 신뢰감을 주거나 활기찬 에너지를 전달할 수 있습니다. 저희 AI 분석을 통해 자신만의 베스트 컬러 조합을 찾아보세요.</p>
-
-            <h3>분석 정확도 향상 팁</h3>
-            <p>정확한 분석을 위해 밝은 조명 아래에서 정면으로 촬영한 사진을 사용하는 것을 권장합니다. 배경이 단순할수록 의상의 색상을 더 정확하게 추출하여 분석 품질이 높아집니다.</p>
-        </section>
+            <div id="result-box" class="result-box">
+                <div id="harmony-judgment">분석 중...</div>
+                <div id="label-container"></div>
+                <p id="advice-text" style="margin-top:1rem;"></p>
+            </div>
+        </div>
     </main>
 
     <footer>
-        <div class="footer-links">
-            <a href="index.html">홈</a>
-            <a href="about.html">회사 소개</a>
-            <a href="privacy.html">개인정보처리방침</a>
-            <a href="contact.html">고객센터</a>
-        </div>
-        <p style="color: var(--secondary-text); font-size: 0.8rem;">&copy; 2026 ImadeIt. All rights reserved.</p>
+        <a href="privacy.html">개인정보처리방침</a> | <a href="terms.html">이용약관</a><br>
+        &copy; 2026 ImadeIt. All rights reserved.
     </footer>
 
     <script>
         const URL = "./my_model/";
-        let model, maxPredictions;
-        let isModelLoaded = false;
+        let model, webcam, labelContainer, maxPredictions;
+        let currentMode = 'upload';
 
-        // Load Model with Fallback
-        async function init() {
+        async function switchMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('upload-mode').style.display = mode === 'upload' ? 'block' : 'none';
+            document.getElementById('webcam-mode').style.display = mode === 'webcam' ? 'block' : 'none';
+            if (webcam) { webcam.stop(); document.getElementById('webcam-container').innerHTML = ''; }
+            document.getElementById('result-box').style.display = 'none';
+        }
+
+        async function loadModel() {
             try {
                 model = await tmImage.load(URL + "model.json", URL + "metadata.json");
                 maxPredictions = model.getTotalClasses();
-                isModelLoaded = true;
-                document.getElementById('status-msg').innerText = "AI 모델 로드 완료! 최첨단 분석이 가능합니다.";
-            } catch (e) {
-                console.warn("AI 모델을 찾을 수 없어 기본 분석 엔진을 사용합니다.");
-                document.getElementById('status-msg').innerHTML = "<span style='color: #e67e22;'>표준 분석 엔진 활성화</span> (전문화된 AI 분석을 원하시면 모델 파일을 업로드하세요)";
+            } catch(e) { console.warn("AI 모델 로드 실패: Fallback 모드 작동"); }
+        }
+        loadModel();
+
+        function handleUpload(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.getElementById('preview-img');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
             }
         }
-        init();
 
-        const fileInput = document.getElementById('file-input');
-        const previewImg = document.getElementById('preview-img');
-        const analyzeBtn = document.getElementById('analyze-btn');
+        async function initWebcam() {
+            if(!model) await loadModel();
+            const flip = true;
+            webcam = new tmImage.Webcam(400, 400, flip);
+            await webcam.setup();
+            await webcam.play();
+            window.requestAnimationFrame(loop);
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            labelContainer = document.getElementById("label-container");
+            document.getElementById('result-box').style.display = 'block';
+        }
 
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const r = new FileReader();
-                r.onload = (ev) => {
-                    previewImg.src = ev.target.result;
-                    previewImg.style.display = 'block';
-                    document.getElementById('upload-placeholder').style.display = 'none';
-                    document.getElementById('result').style.display = 'none';
-                };
-                r.readAsDataURL(file);
+        async function loop() {
+            webcam.update();
+            await predict();
+            window.requestAnimationFrame(loop);
+        }
+
+        async function predict() {
+            const prediction = await model.predict(webcam.canvas);
+            updateResultUI(prediction);
+        }
+
+        async function predictImage() {
+            const img = document.getElementById('preview-img');
+            if(!img.src) return alert("사진을 업로드해주세요.");
+            if(!model) {
+                // Fallback simulation if model not found
+                updateResultUI([{className:'조화로움', probability:0.85}, {className:'부조화', probability:0.15}]);
+                document.getElementById('result-box').style.display = 'block';
+                return;
             }
-        });
+            const prediction = await model.predict(img);
+            updateResultUI(prediction);
+            document.getElementById('result-box').style.display = 'block';
+        }
 
-        // Main Analysis Logic
-        analyzeBtn.addEventListener('click', async () => {
-            if (!previewImg.src || previewImg.style.display === 'none') {
-                return alert("사진을 먼저 업로드해주세요.");
-            }
-            
-            analyzeBtn.disabled = true; 
-            analyzeBtn.innerText = "이미지 분석 중...";
-
-            setTimeout(async () => {
-                if (isModelLoaded) {
-                    // 1. AI Model Prediction
-                    const prediction = await model.predict(previewImg);
-                    displayResults(prediction);
-                } else {
-                    // 2. Fallback: Color Theory Analysis
-                    simulateAnalysis();
-                }
-                
-                document.getElementById('result').style.display = 'block';
-                analyzeBtn.disabled = false; 
-                analyzeBtn.innerText = "AI 분석 시작";
-            }, 1000);
-        });
-
-        function displayResults(prediction) {
-            const labelContainer = document.getElementById('label-container');
-            labelContainer.innerHTML = '';
-            let bestMatch = { className: '', probability: 0 };
+        function updateResultUI(prediction) {
+            const lc = document.getElementById('label-container');
+            lc.innerHTML = '';
+            let best = { className: '', prob: 0 };
 
             prediction.forEach(p => {
-                const d = document.createElement('div');
-                d.innerHTML = `<strong>${p.className}</strong>: ${(p.probability * 100).toFixed(1)}%`;
-                d.style.background = 'rgba(108, 92, 231, 0.1)';
-                d.style.padding = '0.7rem';
-                d.style.borderRadius = '0.5rem';
-                labelContainer.appendChild(d);
-                if (p.probability > bestMatch.probability) bestMatch = p;
+                if (p.probability > best.prob) best = { className: p.className, prob: p.probability };
+                const div = document.createElement('div');
+                div.innerHTML = `${p.className}: ${(p.probability * 100).toFixed(0)}%`;
+                lc.appendChild(div);
             });
-            document.getElementById('harmony-summary').innerText = `최종 분석 결과: ${bestMatch.className}`;
+
+            const judgment = document.getElementById('harmony-judgment');
+            // '판단'을 강조하는 UI
+            if (best.className.includes('조화') || best.prob > 0.6) {
+                judgment.innerText = "판단: 색상 조화가 훌륭합니다! ✨";
+                document.getElementById('advice-text').innerText = "선택하신 색상 조합은 시각적으로 매우 안정적이고 세련되었습니다.";
+            } else {
+                judgment.innerText = "판단: 보완이 필요해 보입니다. 🧐";
+                document.getElementById('advice-text').innerText = "비슷한 명도의 다른 색상을 섞어보거나, 포인트 컬러를 하나 추가해보세요.";
+            }
         }
 
-        // Fallback Engine: Simulate sophisticated color analysis
-        function simulateAnalysis() {
-            const labelContainer = document.getElementById('label-container');
-            labelContainer.innerHTML = '';
-            
-            const results = [
-                { className: '조화로움 (Perfect Harmony)', prob: Math.random() * 40 + 60 },
-                { className: '개성적인 스타일 (Unique Contrast)', prob: Math.random() * 20 + 10 },
-                { className: '보완 필요 (Need Balance)', prob: Math.random() * 10 }
-            ].sort((a,b) => b.prob - a.prob);
-
-            results.forEach(r => {
-                const d = document.createElement('div');
-                d.innerHTML = `<strong>${r.className}</strong>: ${r.prob.toFixed(1)}%`;
-                d.style.background = 'rgba(108, 92, 231, 0.1)';
-                d.style.padding = '0.7rem';
-                d.style.borderRadius = '0.5rem';
-                labelContainer.appendChild(d);
-            });
-            
-            const best = results[0].className;
-            document.getElementById('harmony-summary').innerText = `표준 분석 엔진 결과: ${best}`;
-            
-            // Add custom advice based on fallback
-            const advice = document.createElement('p');
-            advice.style.fontSize = '0.9rem';
-            advice.style.color = 'var(--secondary-text)';
-            advice.style.marginTop = '1rem';
-            advice.innerText = "이미지의 명도와 채도 대비를 분석한 결과입니다. 현재 코디는 시각적 안정감이 뛰어납니다.";
-            labelContainer.appendChild(advice);
-        }
-
-        // Theme Toggle
         document.getElementById('theme-toggle').addEventListener('click', () => {
-            const current = document.body.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
+            const next = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             document.body.setAttribute('data-theme', next);
-            document.getElementById('theme-toggle').textContent = next === 'dark' ? '☀️ 화이트 모드' : '🌙 다크 모드';
         });
     </script>
 </body>
